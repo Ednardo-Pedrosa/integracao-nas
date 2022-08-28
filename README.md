@@ -1,4 +1,4 @@
-# Script utilizado para gerar configurações de integração de concentradores no SGP
+# Script utilizado para gerar configurações de integração Radius de concentradores Mikroti, Juniper, Huawei, Accel-PPP:
 > Execução: Para executar o script em Linux:
 ```
 apt-get install wget -y
