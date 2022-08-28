@@ -1,6 +1,5 @@
 # Script utilizado para gerar configurações de integração de concentradores no SGP
-> Status do projeto: Em desenvolvimento<
-> Execução: Para executar o script em Linux:<
+> Execução: Para executar o script em Linux:
 ```
 apt install wget
 ```
