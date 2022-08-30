@@ -575,9 +575,11 @@ set access profile SGP-$NOME_PROV accounting coa-immediate-update
 set access profile SGP-$NOME_PROV accounting update-interval 10
 set access profile SGP-$NOME_PROV accounting statistics volume-time
 
-#Setar nos planos
+########################################################### CONFIGURACOES NO SGP #######################################################################
 
-{
+#Setar profile nos planos do SGP em Lote:
+
+radius={
   "reply": [
     {
       "attribute": "ERX-Service-Activate:1",
@@ -591,6 +593,20 @@ set access profile SGP-$NOME_PROV accounting statistics volume-time
     }
   ]
 }
+
+#Variaveis
+
+Nome : BLOQUEIO_V6_PREFIX
+Descrição: Suspensão de clientes IPv6
+Valor : bloqueiov6prefix
+
+Nome : BLOQUEIO_V6_PD
+Descrição: Suspensão de clientes IPv6
+Valor : bloqueiov6pd
+
+Nome : ERX_POOL_ENABLE
+Descrição: ERX_POOL_ENABLE
+Valor : 1
 
 EOF
 
