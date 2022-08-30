@@ -579,6 +579,8 @@ set access profile SGP-$NOME_PROV accounting statistics volume-time
 
 #Setar profile nos planos do SGP em Lote:
 
+Menu: TSMX/WebShell Script
+
 radius={
   "reply": [
     {
@@ -593,6 +595,13 @@ radius={
     }
   ]
 }
+from apps.admcore import models
+from apps.netcore.utils.radius import manage
+print(models.PlanoInternet.objects.all().update(radius_json=radius))
+m = manage.Manage()
+for i in models.PlanoInternet.objects.all():
+    m.delRadiusPlano(i)
+    m.addRadiusPlano(i)
 
 #Variaveis
 
