@@ -575,6 +575,23 @@ set access profile SGP-$NOME_PROV accounting coa-immediate-update
 set access profile SGP-$NOME_PROV accounting update-interval 10
 set access profile SGP-$NOME_PROV accounting statistics volume-time
 
+#Setar nos planos
+
+{
+  "reply": [
+    {
+      "attribute": "ERX-Service-Activate:1",
+      "value": "\"SGP-$NOME_PROV-Limit({upload}M,{download}M)\"",
+      "op": "+="
+    },
+    {
+      "attribute": "ERX-Service-Activate:2",
+      "value": "\"SGP-$NOME_PROV-Limit({upload}M,{download}M)\"",
+      "op": "+="
+    }
+  ]
+}
+
 EOF
 
 subl Juniper-$NOME_PROV.txt
