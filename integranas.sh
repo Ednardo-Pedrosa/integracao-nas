@@ -499,7 +499,7 @@ read ACC_PORT
 
 cat <<EOF > Juniper-$NOME_PROV.txt
 
-conf t
+conf 
 
 set dynamic-profiles SGP-$NOME_PROV-Limit variables up-rate default-value 32k
 set dynamic-profiles SGP-$NOME_PROV-Limit variables up-rate mandatory
@@ -574,6 +574,13 @@ set access profile SGP-$NOME_PROV accounting order radius
 set access profile SGP-$NOME_PROV accounting coa-immediate-update
 set access profile SGP-$NOME_PROV accounting update-interval 10
 set access profile SGP-$NOME_PROV accounting statistics volume-time
+
+set access address-assignment pool bloqueiov6prefix family inet6 prefix 2001:D08:100::/40
+set access address-assignment pool bloqueiov6prefix family inet6 range ipv6-pppoe prefix-length 64
+set access address-assignment pool bloqueiov6pd family inet6 prefix 2001:DB8:900::/40
+set access address-assignment pool bloqueiov6pd family inet6 range prefixn-range prefix-length 64
+
+commi
 
 ########################################################### CONFIGURACOES NO SGP #######################################################################
 
