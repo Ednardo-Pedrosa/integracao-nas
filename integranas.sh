@@ -269,6 +269,33 @@ return
 save
 y
 
+########################################################### CONFIGURACOES NO SGP #######################################################################
+
+#Variaveis
+
+Nome : HUAWEI_RATE
+Descrição: Controle de banda via radius - Dinâmica
+Valor : 1
+
+Nome : BLOQUEIO_V6_PREFIX
+Descrição: Suspensão de clientes IPv6
+Valor : bloqueiov6prefix
+
+Nome : BLOQUEIO_V6_PD
+Descrição: Suspensão de clientes IPv6
+Valor : bloqueiov6pd
+
+Nome : HUAWEI_POOL_ENABLE
+Descrição: HUAWEI_POOL_ENABLE
+Valor : 1
+
+#Recriar Radius
+
+from apps.netcore.utils.radius import manage 
+print("recriar radius Iniciando") 
+manage.Manage().ResetRadius() 
+print("Radius recriado")
+
 EOF
 
 subl Huawei-$PROVEDOR.txt
@@ -580,7 +607,7 @@ set access address-assignment pool bloqueiov6prefix family inet6 range ipv6-pppo
 set access address-assignment pool bloqueiov6pd family inet6 prefix 2001:DB8:900::/40
 set access address-assignment pool bloqueiov6pd family inet6 range prefixn-range prefix-length 64
 
-commi
+commit
 
 ########################################################### CONFIGURACOES NO SGP #######################################################################
 
