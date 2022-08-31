@@ -601,6 +601,7 @@ set access profile SGP-$NOME_PROV accounting order radius
 set access profile SGP-$NOME_PROV accounting coa-immediate-update
 set access profile SGP-$NOME_PROV accounting update-interval 10
 set access profile SGP-$NOME_PROV accounting statistics volume-time
+set access domain map default access-profile SGP-$NOME_PROV
 
 set access address-assignment pool bloqueiov6prefix family inet6 prefix 2001:D08:100::/40
 set access address-assignment pool bloqueiov6prefix family inet6 range ipv6-pppoe prefix-length 64
