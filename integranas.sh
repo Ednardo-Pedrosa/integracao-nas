@@ -584,6 +584,8 @@ set access profile SGP-$NOME_PROV accounting-order radius
 set access profile SGP-$NOME_PROV authentication-order radius
 set access profile SGP-$NOME_PROV domain-name-server-inet 8.8.8.8
 set access profile SGP-$NOME_PROV domain-name-server-inet 8.8.4.4
+set access profile PPPoE-Access-Profile domain-name-server-inet6 2001:4860:4860::8888
+set access profile PPPoE-Access-Profile domain-name-server-inet6 2001:4860:4860::8844
 set access profile SGP-$NOME_PROV radius authentication-server $IP_RADIUS
 set access profile SGP-$NOME_PROV radius accounting-server $IP_RADIUS
 set access profile SGP-$NOME_PROV radius options nas-identifier 4
