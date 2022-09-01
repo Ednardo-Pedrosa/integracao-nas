@@ -538,7 +538,7 @@ set dynamic-profiles SGP-$NOME_PROV-Limit variables filter-ipv6-up uid
 set dynamic-profiles SGP-$NOME_PROV-Limit variables filter-ipv6-down uid
 set dynamic-profiles SGP-$NOME_PROV-Limit variables shaper-up uid
 set dynamic-profiles SGP-$NOME_PROV-Limit variables shaper-down uid
-set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "$junos-interface-ifd-name" unit "$junos-interface-unit" family inet filter input "$filter-up"
+"set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "$junos-interface-ifd-name" unit "$junos-interface-unit" family inet filter input "$filter-up""
 set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "$junos-interface-ifd-name" unit "$junos-interface-unit" family inet filter output "$filter-down"
 set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "$junos-interface-ifd-name" unit "$junos-interface-unit" family inet6 filter input "$filter-ipv6-up"
 set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "$junos-interface-ifd-name" unit "$junos-interface-unit" family inet6 filter output "$filter-ipv6-down"
