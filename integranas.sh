@@ -582,8 +582,8 @@ set access radius-disconnect $IP_RADIUS secret "$SECRETS"
 
 set access profile SGP-$NOME_PROV accounting-order radius
 set access profile SGP-$NOME_PROV authentication-order radius
-set access profile SGP-$NOME_PROV domain-name-server-inet $IP_RADIUS
-set access profile SGP-$NOME_PROV domain-name-server-inet $IP_RADIUS
+set access profile SGP-$NOME_PROV domain-name-server-inet 8.8.8.8
+set access profile SGP-$NOME_PROV domain-name-server-inet 8.8.4.4
 set access profile SGP-$NOME_PROV radius authentication-server $IP_RADIUS
 set access profile SGP-$NOME_PROV radius accounting-server $IP_RADIUS
 set access profile SGP-$NOME_PROV radius options nas-identifier 4
