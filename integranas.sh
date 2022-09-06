@@ -532,44 +532,63 @@ set dynamic-profiles SGP-$NOME_PROV-Limit variables up-rate default-value 32k
 set dynamic-profiles SGP-$NOME_PROV-Limit variables up-rate mandatory
 set dynamic-profiles SGP-$NOME_PROV-Limit variables down-rate default-value 32k
 set dynamic-profiles SGP-$NOME_PROV-Limit variables down-rate mandatory
+set dynamic-profiles SGP-$NOME_PROV-Limit variables burst-up default-value 2m
+set dynamic-profiles SGP-$NOME_PROV-Limit variables burst-down default-value 2m
 set dynamic-profiles SGP-$NOME_PROV-Limit variables filter-up uid
 set dynamic-profiles SGP-$NOME_PROV-Limit variables filter-down uid
-set dynamic-profiles SGP-$NOME_PROV-Limit variables filter-ipv6-up uid
-set dynamic-profiles SGP-$NOME_PROV-Limit variables filter-ipv6-down uid
 set dynamic-profiles SGP-$NOME_PROV-Limit variables shaper-up uid
 set dynamic-profiles SGP-$NOME_PROV-Limit variables shaper-down uid
-set dynamic-profiles SGP-$NOME_PROV-Limit interfaces unit "$junos-interface-unit" ppp-options chap
-set dynamic-profiles SGP-$NOME_PROV-Limit interfaces unit "$junos-interface-unit" ppp-options pap
 set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "\$junos-interface-ifd-name" unit "\$junos-interface-unit" family inet filter input "\$filter-up"
 set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "\$junos-interface-ifd-name" unit "\$junos-interface-unit" family inet filter output "\$filter-down"
-set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "\$junos-interface-ifd-name" unit "\$junos-interface-unit" family inet6 filter input "\$filter-ipv6-up"
-set dynamic-profiles SGP-$NOME_PROV-Limit interfaces "\$junos-interface-ifd-name" unit "\$junos-interface-unit" family inet6 filter output "\$filter-ipv6-down"
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" interface-specific
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" term accept then policer "\$shaper-down"
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" term accept then service-filter-hit
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" term accept then accept
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-up" interface-specific
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-up" term accept then policer "\$shaper-up"
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-up" term accept then service-filter-hit
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-up" term accept then accept
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-up" interface-specific
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-up" term accept then policer "\$shaper-up"
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-up" term accept then service-filter-hit
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-up" term accept then accept
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-down" interface-specific
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-down" term accept then policer "\$shaper-down"
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-down" term accept then service-filter-hit
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet6 filter "\$filter-ipv6-down" term accept then accept
+set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" interface-specific
+set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" term accept then policer "\$shaper-down"
+set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" term accept then service-filter-hit
+set dynamic-profiles SGP-$NOME_PROV-Limit firewall family inet filter "\$filter-down" term accept then accept
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-up" filter-specific
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-up" logical-interface-policer
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-up" if-exceeding bandwidth-limit "\$up-rate"
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-up" if-exceeding burst-size-limit 1024000000
+set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-up" if-exceeding burst-size-limit "\$burst-up"
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-up" then discard
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-down" filter-specific
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-down" logical-interface-policer
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-down" if-exceeding bandwidth-limit "\$down-rate"
-set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-down" if-exceeding burst-size-limit 1024000000
+set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-down" if-exceeding burst-size-limit "\$burst-down"
 set dynamic-profiles SGP-$NOME_PROV-Limit firewall policer "\$shaper-down" then discard
+
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables up-rate default-value 32k
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables up-rate mandatory
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables down-rate default-value 32k
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables down-rate mandatory
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables burst-up default-value 2m
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables burst-down default-value 2m
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables filter-up-v6 uid
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables filter-down-v6 uid
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables shaper-up-v6 uid
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 variables shaper-down-v6 uid
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 interfaces "\$junos-interface-ifd-name" unit "\$junos-interface-unit" family inet6 filter input "\$filter-up-v6"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 interfaces "\$junos-interface-ifd-name" unit "\$junos-interface-unit" family inet6 filter output "\$filter-down-v6"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-up-v6" interface-specific
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-up-v6" term accept then policer "\$shaper-up-v6"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-up-v6" term accept then service-filter-hit
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-up-v6" term accept then accept
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-down-v6" interface-specific
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-down-v6" term accept then policer "\$shaper-down-v6"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-down-v6" term accept then service-filter-hit
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall family inet6 filter "\$filter-down-v6" term accept then accept
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-up-v6" filter-specific
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-up-v6" logical-interface-policer
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-up-v6" if-exceeding bandwidth-limit "\$up-rate"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-up-v6" if-exceeding burst-size-limit "\$burst-up"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-up-v6" then discard
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-down-v6" filter-specific
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-down-v6" logical-interface-policer
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-down-v6" if-exceeding bandwidth-limit "\$down-rate"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-down-v6" if-exceeding burst-size-limit "\$burst-down"
+set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-down-v6" then discard
 
 set access radius-server $IP_RADIUS port $AUT_PORT
 set access radius-server $IP_RADIUS accounting-port $ACC_PORT
@@ -629,7 +648,7 @@ radius={
     },
     {
       "attribute": "ERX-Service-Activate:2",
-      "value": "\"SGP-$NOME_PROV-Limit({upload}M,{download}M)\"",
+      "value": "\"SGP-$NOME_PROV-Limit-V6({upload}M,{download}M)\"",
       "op": "+="
     }
   ]
