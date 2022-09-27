@@ -682,6 +682,14 @@ print("recriar radius Iniciando")
 manage.Manage().ResetRadius()
 print("Finalizado")
 
+#Troubleshooting
+
+ping $IP_RADIUS source $IP_NAS
+
+test aaa ppp username teste-sgp password 1234567890 profile SGP-$NOME_PROV
+
+show configuration | display set
+
 EOF
 
 subl Juniper-$NOME_PROV.txt
