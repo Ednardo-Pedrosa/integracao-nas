@@ -675,6 +675,13 @@ Nome : ERX_POOL_ENABLE
 Descrição: ERX_POOL_ENABLE
 Valor : 1
 
+#RebuildRadius
+
+from apps.netcore.utils.radius import manage
+print("recriar radius Iniciando")
+manage.Manage().ResetRadius()
+print("Finalizado")
+
 EOF
 
 subl Juniper-$NOME_PROV.txt
