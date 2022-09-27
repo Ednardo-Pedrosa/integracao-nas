@@ -592,14 +592,14 @@ set dynamic-profiles SGP-$NOME_PROV-Limit-V6 firewall policer "\$shaper-down-v6"
 
 set access radius-server $IP_RADIUS port $AUT_PORT
 set access radius-server $IP_RADIUS accounting-port $ACC_PORT
-set access radius-server $IP_RADIUS secret '"$SECRETS"
+set access radius-server $IP_RADIUS secret $SECRETS
 set access radius-server $IP_RADIUS timeout 40
 set access radius-server $IP_RADIUS retry 3
 set access radius-server $IP_RADIUS accounting-timeout 20
 set access radius-server $IP_RADIUS accounting-retry 6
 set access radius-server $IP_RADIUS source-address $IP_NAS
 set access radius-disconnect-port 3799
-set access radius-disconnect $IP_RADIUS secret "$SECRETS"
+set access radius-disconnect $IP_RADIUS secret $SECRETS
 
 set access profile SGP-$NOME_PROV accounting-order radius
 set access profile SGP-$NOME_PROV authentication-order radius
