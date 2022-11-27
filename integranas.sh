@@ -61,7 +61,7 @@ read SNMP
 
 cat <<EOF > Mikrotik-$login_vpn.txt
 
-# AJUSTES NO MIKROTIK
+#PERFIL DE INTEGRAÇÃO MIKROTIK
 
 :global USERVPN "$USERVPN"
 :global AUC "$AUC"
@@ -77,36 +77,48 @@ cat <<EOF > Mikrotik-$login_vpn.txt
 :global PORTAPI "$PORTAPI"
 :global SNMP "$SNMP"
 
-/system backup save name=BACKUP_ANTES_DO_SGP
-/export file=BACKUP_ANTES_DO_SGP_TXT
-# AJUSTES NO MIKROTIK
+#GERANDO BACKUP DO CONCENTRADOR MIKROTIK:
+
+/system backup save name=BACKUP_REALIZADO_ANTERIOR_INTEGRACAO_SGP
+/export file=BACKUP_REALIZADO_ANTERIOR_INTEGRACAO_SGP_TXT
+
+#REALZANDO AJUSTES DE CONFIGURACOES DO MIKROTIK:
+
 /system ntp client set enabled=yes primary-ntp=200.160.0.8
 /system clock set time-zone-name=America/Recife
+
+#HABILITANDO O RADIUS E ACESSO API:
+
 /radius incoming set accept=yes
 /ip service set api disabled=no port=$PORTAPI address="$RADIUS,$IPSGP"
 /user aaa set use-radius=yes
 /ppp aaa set interim-update=5m use-radius=yes
+
+#CONFIGURACAO SNMP:
+
 /snmp community add addresses="$RADIUS,$IPSGP" name=$SNMP
 /snmp set enabled=yes trap-community=$SNMP trap-version=2
 /ppp secret set service=any [find .id!=999]
+
+#CONFIGURACAO DE USUARIO SGP:
+
 /user add name=SGP comment="SISTEMA SGP - COMUNICACAO API PORTA $PORTAPI - NAO REMOVER OU EDITAR" \
     group=full password=$PASSVPNUSER
 /system logging set 0 action=memory disabled=no prefix="" topics=info,!account
+
+#CONFIGURACAO RADIUS:
+
 /radius
 add comment="RADIUS SGP" secret=sgp@radius service=ppp,dhcp,login address=$RADIUS accounting-port=$ACC \
     authentication-port=$AUC timeout=00:00:03 src-address=$NAS
-    
+
+#CONFIGURACAO VPN:
+
 /ppp profile add name=VPN-SGP use-encryption=yes
-/interface pptp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER  name="SGP-PPTP"\
-    disabled=no comment=SGP-PPTP profile=VPN-SGP keepalive-timeout=30
-    
 /interface  l2tp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER name="SGP-L2TP"\
     disabled=no profile=VPN-SGP comment=SGP-L2TP keepalive-timeout=30
 
-/interface ovpn-client
-add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER profile=VPN-SGP name="SGP-OVPN"\
-    disabled=no comment=SGP-OVPN
-# REGRAS DE AVISO E BLOQUEIO
+#CONFIGURACAO ADDRESS-LIST E REGRAS DE FIREWALL - BLOQUEIO E REDIRECIONAMENTO PARA PAGINAS DE AVISO/BLOQUEIO
 
 /ip firewall address-list 
 add address=$RADIUS list=SITES-LIBERADOS
@@ -116,7 +128,7 @@ add address=208.67.222.220 list=SITES-LIBERADOS
 add address=8.8.8.8 list=SITES-LIBERADOS
 add address=8.8.4.4 list=SITES-LIBERADOS
 add address=1.1.1.1 list=SITES-LIBERADOS
-add address=10.24.0.0/20 list=BLOQUEADOS
+add address=10.24.0.0/22 list=BLOQUEADOS
 
 /ip firewall filter
 add chain=forward connection-mark=BLOQUEIO-AVISAR action=add-src-to-address-list \
@@ -154,7 +166,7 @@ add name=sgp-aviso policy=\
     \n:delay 10s;\r\
     \n/ip firewall address-list set timeout=00:15:00 [/ip firewall address-list find list=BLOQUEIO-AVISAR]";\
 
-# CONFIGURACAO IPv6 MIKROTIK
+#CHECANDO CONFIGURACOES IPV6 - CONFIGURACAO COLETA PDV6 E BLOQUEIOV6:
 
 :global versao [/system package get number=0 version ]; :global versao2 [:pick $versao 0 [:find "$versao" "." -3]];
 :delay 2s
@@ -223,8 +235,8 @@ add name=sgp-aviso policy=\
     }
 }
 
-# CRIAR BACKUP DOS PPPoEs
-
+#CONFIGURANDO BACKUP DE SECRETS:
+ppp secret export verbose compact file="secretsBKP-SGP.txt"
 :global wurl "ws/mikrotik/login/local"
 /system script
 add name=sgp_login_local owner=SGP policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source=":global filename \"sgp_login_local.txt\";\r\
@@ -236,7 +248,7 @@ add name=sgp_login_local owner=SGP policy=ftp,reboot,read,write,policy,test,pass
 add disabled=no interval=6h name=sgp_login_local on-event=sgp_login_local policy=\
     ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=12:00:00
 /tool netwatch
-add comment="ATIVAR O SECRETS CASO O RADIUS PARE" disabled=yes \
+add comment="HABILITA SECRETES CASO O RADIUS-SGP $RADIUS PARE" disabled=yes \
     down-script="/ppp secret ; :foreach i in [ find comment~\"SGP:\
     \" ] do={ enable \$i }; /ppp active; :foreach p in [find \\ radius=no] do=\
     { remove \$p; :delay 1};" host=$RADIUS interval=3m timeout=10000ms \
@@ -244,7 +256,7 @@ add comment="ATIVAR O SECRETS CASO O RADIUS PARE" disabled=yes \
     ble \$i }; /ppp active; :foreach p in [find \\ radius=no] do={ remove \$p;\
     \_:delay 1};"
 
-:log print where message="SERVICO IPV6 HABILITADO NO EQUIPAMENTO" or message="NAO TEM IPV6 HABILITADO NESSA RB"
+:log print where message="SERVICO IPV6 HABILITADO NO EQUIPAMENTO" or message="SERVICO IPV6 DESATIVADO NO EQUIPAMENTO"
 
 #Script Integração
 #Systema de Gerenciamento de provedores - SGP
