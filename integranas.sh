@@ -266,7 +266,7 @@ add comment="HABILITA SECRETES CASO O RADIUS-SGP $RADIUS PARE" disabled=yes \
 
 EOF
 
-subl Mikrotik-$login_vpn.txt
+subl Mikrotik-$PROVEDOR.txt
 }
 
 Huawei () {
