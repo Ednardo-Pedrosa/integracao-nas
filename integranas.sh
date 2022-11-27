@@ -87,7 +87,7 @@ cat <<EOF > Mikrotik-$login_vpn.txt
 /user aaa set use-radius=yes
 /ppp aaa set interim-update=5m use-radius=yes
 /snmp community add addresses="$RADIUS,$IPSGP" name=$SNMP
-/snmp set enabled=yes trap-community=public trap-version=2
+/snmp set enabled=yes trap-community=$SNMP trap-version=2
 /ppp secret set service=any [find .id!=999]
 /user add name=SGP comment="SISTEMA SGP - COMUNICACAO API PORTA $PORTAPI - NAO REMOVER OU EDITAR" \
     group=full password=$PASSVPNUSER
