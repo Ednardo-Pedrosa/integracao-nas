@@ -61,7 +61,7 @@ read PORTAPI
 echo "Comunidade SNMP:"
 read SNMP
 
-cat <<EOF > Mikrotik-$login_vpn.txt
+cat <<EOF > Mikrotik-$PROVEDOR.txt
 
 #PERFIL DE INTEGRAÇÃO MIKROTIK
 
@@ -78,6 +78,7 @@ cat <<EOF > Mikrotik-$login_vpn.txt
 :global NAS "$NAS"
 :global PORTAPI "$PORTAPI"
 :global SNMP "$SNMP"
+:global USERVPN "$USERVPN"
 
 #GERANDO BACKUP DO CONCENTRADOR MIKROTIK:
 
