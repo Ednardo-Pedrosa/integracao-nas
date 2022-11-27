@@ -70,7 +70,7 @@ cat <<EOF > Mikrotik-$login_vpn.txt
 :global BLQ "$BLQ"
 :global PASSVPNUSER "$PASSVPNUSER"
 :global RADIUS "$RADIUS"
-:global TOKEN "$TOKEN"
+:global TOKEN "$TOKENAQUI"
 :global LINKDOSGP "$LINKDOSGP"
 :global IPSGP "$IPSGP"
 :global NAS "$NAS"
