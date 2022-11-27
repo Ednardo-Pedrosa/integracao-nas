@@ -32,6 +32,8 @@ echo "Script - Integrao Mikrotik"
 echo ""
 echo "Preencha as seguintes informaes:"
 echo ""
+echo "Nome do Provedor:"
+read PROVEDOR
 echo "Usurio VPN:"
 read USERVPN
 echo "Senha NAS/VPN:"
@@ -109,14 +111,14 @@ cat <<EOF > Mikrotik-$login_vpn.txt
 #CONFIGURACAO RADIUS:
 
 /radius
-add comment="RADIUS SGP" secret=sgp@radius service=ppp,dhcp,login address=$RADIUS accounting-port=$ACC \
+add comment="RADIUS SGP $PROVEDOR" secret=sgp@radius service=ppp,dhcp,login address=$RADIUS accounting-port=$ACC \
     authentication-port=$AUC timeout=00:00:03 src-address=$NAS
 
 #CONFIGURACAO VPN:
 
-/ppp profile add name=VPN-SGP use-encryption=yes
+/ppp profile add name=VPN-SGP-$PROVEDOR use-encryption=yes
 /interface  l2tp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER name="SGP-L2TP"\
-    disabled=no profile=VPN-SGP comment=SGP-L2TP keepalive-timeout=30
+    disabled=no profile=VPN-SGP-$PROVEDOR comment=SGP-L2TP-$VPN-SGP-$PROVEDOR keepalive-timeout=30
 
 #CONFIGURACAO ADDRESS-LIST E REGRAS DE FIREWALL - BLOQUEIO E REDIRECIONAMENTO PARA PAGINAS DE AVISO/BLOQUEIO
 
@@ -236,6 +238,7 @@ add name=sgp-aviso policy=\
 }
 
 #CONFIGURANDO BACKUP DE SECRETS:
+
 ppp secret export verbose compact file="secretsBKP-SGP.txt"
 :global wurl "ws/mikrotik/login/local"
 /system script
