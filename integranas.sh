@@ -78,7 +78,7 @@ cat <<EOF > Mikrotik-$PROVEDOR.txt
 :global NAS "$NAS"
 :global PORTAPI "$PORTAPI"
 :global SNMP "$SNMP"
-:global USERVPN "$USERVPN"
+:global PROVEDOR "$PROVEDOR"
 
 #GERANDO BACKUP DO CONCENTRADOR MIKROTIK:
 
@@ -112,7 +112,7 @@ cat <<EOF > Mikrotik-$PROVEDOR.txt
 #CONFIGURACAO RADIUS:
 
 /radius
-add comment="RADIUS SGP ${PROVEDOR^^}" secret=sgp@radius service=ppp,dhcp,login address=$RADIUS accounting-port=$ACC \
+add comment="RADIUS SGP $PROVEDOR" secret=sgp@radius service=ppp,dhcp,login address=$RADIUS accounting-port=$ACC \
     authentication-port=$AUC timeout=00:00:03 src-address=$NAS
 
 #CONFIGURACAO VPN:
