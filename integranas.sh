@@ -52,6 +52,8 @@ echo "Link do SGP:"
 read LINKDOSGP
 echo "IP do SGP:"
 read IPSGP
+echo "IP do NAS:"
+read NAS
 echo "Porta API:"
 read PORTAPI
 echo "Comunidade SNMP:"
