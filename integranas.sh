@@ -52,75 +52,92 @@ echo "Link do SGP:"
 read LINKDOSGP
 echo "IP do SGP:"
 read IPSGP
+echo "Porta API:"
+read PORTAPI
+echo "Comunidade SNMP:"
+read SNMP
 
 cat <<EOF > Mikrotik-$login_vpn.txt
 
 # AJUSTES NO MIKROTIK
 
+:global USERVPN "$USERVPN"
+:global AUC "$AUC"
+:global ACC "$ACC"
+:global AVS "$AVS"
+:global BLQ "$BLQ"
+:global PASSVPNUSER "$PASSVPNUSER"
+:global RADIUS "$RADIUS"
+:global TOKEN "$TOKEN"
+:global LINKDOSGP "$LINKDOSGP"
+:global IPSGP "$IPSGP"
+:global NAS "$NAS"
+:global PORTAPI "$PORTAPI"
+:global SNMP "$SNMP"
+
 /system backup save name=BACKUP_ANTES_DO_SGP
 /export file=BACKUP_ANTES_DO_SGP_TXT
-/ip accounting set enabled=yes
+# AJUSTES NO MIKROTIK
 /system ntp client set enabled=yes primary-ntp=200.160.0.8
 /system clock set time-zone-name=America/Recife
 /radius incoming set accept=yes
-/ip service set api disabled=no port=3540 address="$RADIUS,$IPSGP"
+/ip service set api disabled=no port=$PORTAPI address="$RADIUS,$IPSGP"
 /user aaa set use-radius=yes
 /ppp aaa set interim-update=5m use-radius=yes
-/snmp community disable public
-/snmp community add addresses="$RADIUS,$IPSGP" name=SGP-GRAPHICs
-/snmp set enabled=yes trap-community=SGP-GRAPHICs trap-version=2
-/user add name=SGP comment="SGP - ACESSO API - NAO ALTERAR OU REMOVER" \
+/snmp community add addresses="$RADIUS,$IPSGP" name=$SNMP
+/snmp set enabled=yes trap-community=public trap-version=2
+/ppp secret set service=any [find .id!=999]
+/user add name=SGP comment="SISTEMA SGP - COMUNICACAO API PORTA $PORTAPI - NAO REMOVER OU EDITAR" \
     group=full password=$PASSVPNUSER
 /system logging set 0 action=memory disabled=no prefix="" topics=info,!account
 /radius
 add comment="RADIUS SGP" secret=sgp@radius service=ppp,dhcp,login address=$RADIUS accounting-port=$ACC \
-    authentication-port=$AUC timeout=00:00:03
+    authentication-port=$AUC timeout=00:00:03 src-address=$NAS
     
-/ppp profile add name=VPN-SGP
-/interface pptp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER  name="VPN-SGP"\
-    disabled=no comment=SGP profile=VPN-SGP keepalive-timeout=30
+/ppp profile add name=VPN-SGP use-encryption=yes
+/interface pptp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER  name="SGP-PPTP"\
+    disabled=no comment=SGP-PPTP profile=VPN-SGP keepalive-timeout=30
+    
+/interface  l2tp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER name="SGP-L2TP"\
+    disabled=no profile=VPN-SGP comment=SGP-L2TP keepalive-timeout=30
 
-/interface sstp-client add connect-to=($IPSGP.":4433") user=$USERVPN password=$PASSVPNUSER name="SGP-VPN"\
-    disabled=no profile=VPN-SGP comment=SGP keepalive-timeout=5
-
-/interface  l2tp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER name="VPN-SGP"\
-    disabled=no profile=VPN-SGP comment=SGP keepalive-timeout=30
-
-/interface ovpn-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER profile=VPN-SGP \
-    name="VPN-SGP" disabled=no comment=SGP
-
-# REGRAS DE AVISO E BLQOEUIO
+/interface ovpn-client
+add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER profile=VPN-SGP name="SGP-OVPN"\
+    disabled=no comment=SGP-OVPN
+# REGRAS DE AVISO E BLOQUEIO
 
 /ip firewall address-list 
-add address=$RADIUS list=SGP-SITES-LIBERADOS
-add address=$IPSGP list=SGP-SITES-LIBERADOS
-add address=208.67.222.222 list=SGP-SITES-LIBERADOS
-add address=208.67.222.220 list=SGP-SITES-LIBERADOS
-add address=8.8.8.8 list=SGP-SITES-LIBERADOS
-add address=8.8.4.4 list=SGP-SITES-LIBERADOS
-add address=1.1.1.1 list=SGP-SITES-LIBERADOS
-add address=10.24.0.0/20 list=SGP-BLOQUEADOS
+add address=$RADIUS list=SITES-LIBERADOS
+add address=$IPSGP list=SITES-LIBERADOS
+add address=208.67.222.222 list=SITES-LIBERADOS
+add address=208.67.222.220 list=SITES-LIBERADOS
+add address=8.8.8.8 list=SITES-LIBERADOS
+add address=8.8.4.4 list=SITES-LIBERADOS
+add address=1.1.1.1 list=SITES-LIBERADOS
+add address=10.24.0.0/20 list=BLOQUEADOS
+
 /ip firewall filter
-add action=drop chain=forward dst-address-list=!SGP-SITES-LIBERADOS src-address-list=\
-    SGP-BLOQUEADOS comment="SGP REGRA"
-add chain=forward connection-mark=SGP-BLOQUEIO-AVISAR action=add-src-to-address-list \
+add chain=forward connection-mark=BLOQUEIO-AVISAR action=add-src-to-address-list \
     address-list=BLOQUEIO-AVISADOS address-list-timeout=00:01:00 comment="SGP REGRAS" dst-address=$IPSGP \
-    dst-port=$AVS protocol=tcp 
-/ip firewall nat 
-add action=accept chain=srcnat comment="NAO FAZER NAT PARA O DO RADIUS, MANTER ESSA REGRA SEMPRE EM PRIMEIRO" \
-    dst-address=$RADIUS dst-port="$AUC-$ACC,3799" protocol=udp 
-add action=masquerade chain=srcnat comment="SGP REGRAS" src-address-list=\
-    SGP-BLOQUEADOS 
+    dst-port=$AVS protocol=tcp
+/ip firewall nat
+add action=masquerade chain=srcnat comment="SGP REGRAS" dst-address-list=\
+    SITES-LIBERADOS src-address-list=BLOQUEADOS
 add action=dst-nat chain=dstnat comment="SGP REGRAS" dst-address-list=\
-    !SGP-SITES-LIBERADOS dst-port=80,443 log-prefix="" protocol=tcp \
-    src-address-list=SGP-BLOQUEADOS to-addresses=$IPSGP to-ports=$BLQ 
+    !SITES-LIBERADOS dst-port=80,443 log-prefix="" protocol=tcp \
+    src-address-list=BLOQUEADOS to-addresses=$IPSGP to-ports=$BLQ 
 add action=dst-nat chain=dstnat comment="SGP REGRAS" connection-mark=\
-    SGP-BLOQUEIO-AVISAR log-prefix="" protocol=tcp to-addresses=$IPSGP to-ports=$AVS
+    BLOQUEIO-AVISAR log-prefix="" protocol=tcp to-addresses=$IPSGP to-ports=$AVS
 /ip firewall mangle
-add chain=prerouting connection-state=new src-address-list=SGP-BLOQUEIO-AVISAR protocol=tcp dst-port=80,443 \
+add chain=prerouting connection-state=new src-address-list=BLOQUEIO-AVISAR protocol=tcp dst-port=80,443 \
     action=mark-connection new-connection-mark=BLOQUEIO-VERIFICAR passthrough=yes comment="SGP REGRAS" 
 add chain=prerouting connection-mark=BLOQUEIO-VERIFICAR src-address-list=!BLOQUEIO-AVISADOS \
-    action=mark-connection new-connection-mark=SGP-BLOQUEIO-AVISAR comment="SGP REGRAS" 
+    action=mark-connection new-connection-mark=BLOQUEIO-AVISAR comment="SGP REGRAS" 
+/ip firewall raw
+add action=notrack chain=output comment="SGP REGRAS - EVITA NAT PARA O IP DO RADIUS $RADIUS" \
+    dst-address=$RADIUS dst-port="$AUC-$ACC,3799" protocol=udp
+add action=drop chain=prerouting comment="SGP BLOQUEIO" dst-address-list=\
+    !SITES-LIBERADOS src-address-list=BLOQUEADOS
 /system scheduler
 add interval=4h name=sgp-aviso on-event=sgp-aviso policy=\
     ftp,reboot,read,write,policy,test,password,sniff,sensitive start-time=01:00:00 disabled=yes
@@ -129,11 +146,106 @@ add name=sgp-aviso policy=\
     ftp,reboot,read,write,policy,test,password,sniff,sensitive source=":log info\
     \_\"sgp aviso\";\r\
     \n/file remove [find where name=sgp_aviso.rsc]\r\
-    \n/tool fetch url=\"$LINKDOSGP/ws/mikrotik/aviso/pendencia/\\?token=$TOKENAQUI&app=mikrotik\" dst-path=sgp_aviso.rsc;\r\
+    \n/tool fetch url=\"$LINKDOSGP/ws/mikrotik/aviso/pendencia/\\?token=$TOKEN&app=mikrotik\" dst-path=sgp_aviso.rsc;\r\
     \n:delay 30s\r\
     \nimport file-name=sgp_aviso.rsc;\r\
     \n:delay 10s;\r\
-    \n/ip firewall address-list set timeout=00:15:00 [/ip firewall address-list find list=SGP-BLOQUEIO-AVISAR]";
+    \n/ip firewall address-list set timeout=00:15:00 [/ip firewall address-list find list=BLOQUEIO-AVISAR]";\
+
+# CONFIGURACAO IPv6 MIKROTIK
+
+:global versao [/system package get number=0 version ]; :global versao2 [:pick $versao 0 [:find "$versao" "." -3]];
+:delay 2s
+:put $versao2
+:if ($versao2=7) do={
+    :global ipv6 [/ipv6 settings get disable-ipv6]
+    :if ($ipv6=false) do={
+    :log info "############\nSERVICO IPV6 HABILITADO NO EQUIPAMENTO\n############"
+    :log info "CONFIGURANDO O POOL DE BLOQUEIO IPv6"
+    /ipv6 pool add name=bloqueiov6pd prefix-length=64 prefix=2001:DB9:100::/40
+    /ipv6 pool add name=bloqueiov6prefix prefix-length=64 prefix=2001:DBA:900::/40
+    :log info "CONFIGURANDO O SCRIPT NOS PROFILE DOS PPPOE SERVER"
+    /ppp profile set  on-up=":local \
+        ipv6pool \"bloqueiov6pd\"\r\
+        \n:local prefixo\r\
+        \n:local servername \"<pppoe-\$user>\"\r\
+        \n:delay 30s\r\
+        \n:log info [/ipv6 dhcp-server binding find server=\"\$servername\"]\r\
+        \n:foreach binding in=[/ipv6 dhcp-server binding find status=\"bound\" server=\"\$servername\"] do={\r\
+        \n:set prefixo [/ipv6 dhcp-server binding get \$binding address]\r\
+        \n:log info \"FETCH $LINKDOSGP/ws/radius/ipv6/update/\\\?token=$TOKEN&username=\$user&app=mikrotik&nas\
+        ip=\$NAS&pd=\$prefixo\"\r\
+        \n/tool fetch url=\"$LINKDOSGP/ws/radius/ipv6/update/\\\?token=$TOKEN&username=\$user&app=mikrotik&nasip=\$NAS&\
+        pd=\$prefixo\" mode=http as-value output=user\r\
+        \n}" [find .id!=999]
+    /ppp profile set on-down=":local servernam\
+        e \"<pppoe-\$user>\"\r\
+        \n/ipv6 dhcp-server binding remove [find server=\$servername]\r\
+        \n:local servername \"<pppoe-\$user>\"\r\
+        \n/ipv6 dhcp-server remove [find numbers=\$user]\r\
+        \n" [find .id!=999]
+    } else={
+        :log info "############\nSERVICO IPV6 DESATIVADO NO EQUIPAMENTO\n############"
+    }
+} else={
+    :if ($versao2=6) do={
+    :global ipv6 [/system package get ipv6 disabled ]
+    :if ($ipv6=false) do={
+    :log info "############\nSERVICO IPV6 HABILITADO NO EQUIPAMENTO\n############"
+    :log info "CONFIGURANDO O POOL DE BLOQUEIO IPv6"
+    /ipv6 pool add name=bloqueiov6pd prefix-length=64 prefix=2001:DB9:100::/40
+    /ipv6 pool add name=bloqueiov6prefix prefix-length=64 prefix=2001:DBA:900::/40
+    :log info "CONFIGURANDO O SCRIPT NOS PROFILE DOS PPPOE SERVER"
+    /ppp profile set  on-up=":local \
+        ipv6pool \"bloqueiov6pd\"\r\
+        \n:local prefixo\r\
+        \n:local servername \"<pppoe-\$user>\"\r\
+        \n:delay 30s\r\
+        \n:log info [/ipv6 dhcp-server binding find server=\"\$servername\"]\r\
+        \n:foreach binding in=[/ipv6 dhcp-server binding find status=\"bound\" server=\"\$servername\"] do={\r\
+        \n:set prefixo [/ipv6 dhcp-server binding get \$binding address]\r\
+        \n:log info \"FETCH $LINKDOSGP/ws/radius/ipv6/update/\\\?token=$TOKEN&username=\$user&app=mikrotik&nas\
+        ip=\$NAS&pd=\$prefixo\"\r\
+        \n/tool fetch url=\"$LINKDOSGP/ws/radius/ipv6/update/\\\?token=$TOKEN&username=\$user&app=mikrotik&nasip=\$NAS&\
+        pd=\$prefixo\" mode=http as-value output=user\r\
+        \n}" [find .id!=999]
+    /ppp profile set on-down=":local servernam\
+        e \"<pppoe-\$user>\"\r\
+        \n/ipv6 dhcp-server binding remove [find server=\$servername]\r\
+        \n:local servername \"<pppoe-\$user>\"\r\
+        \n/ipv6 dhcp-server remove [find numbers=\$user]\r\
+        \n" [find .id!=999]
+    } else={
+    :log info "############\nSERVICO IPV6 DESATIVADO NO EQUIPAMENTO\n############"
+    }
+    }
+}
+
+# CRIAR BACKUP DOS PPPoEs
+
+:global wurl "ws/mikrotik/login/local"
+/system script
+add name=sgp_login_local owner=SGP policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source=":global filename \"sgp_login_local.txt\";\r\
+    \n/file remove [/file find name=\$filename]\r\
+    \n/tool fetch url=\"$LINKDOSGP/$wurl/\\?token=$TOKEN&app=mikrotik&nas=$NAS&disabled=1\" duration=30 dst-path=\$filename;\r\
+    \n:delay 32s;\r\
+    \n/import file-name=\$filename;"
+/system scheduler
+add disabled=no interval=6h name=sgp_login_local on-event=sgp_login_local policy=\
+    ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=12:00:00
+/tool netwatch
+add comment="ATIVAR O SECRETS CASO O RADIUS PARE" disabled=yes \
+    down-script="/ppp secret ; :foreach i in [ find comment~\"SGP:\
+    \" ] do={ enable \$i }; /ppp active; :foreach p in [find \\ radius=no] do=\
+    { remove \$p; :delay 1};" host=$RADIUS interval=3m timeout=10000ms \
+    up-script="/ppp secret ; :foreach i in [ find comment~\"SGP:\" ] do={ disa\
+    ble \$i }; /ppp active; :foreach p in [find \\ radius=no] do={ remove \$p;\
+    \_:delay 1};"
+
+:log print where message="SERVICO IPV6 HABILITADO NO EQUIPAMENTO" or message="NAO TEM IPV6 HABILITADO NESSA RB"
+
+#Script Integração
+#Systema de Gerenciamento de provedores - SGP
 
 EOF
 
