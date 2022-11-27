@@ -118,7 +118,7 @@ add comment="RADIUS SGP $PROVEDOR" secret=sgp@radius service=ppp,dhcp,login addr
 
 /ppp profile add name=VPN-SGP-$PROVEDOR use-encryption=yes
 /interface  l2tp-client add connect-to=$IPSGP user=$USERVPN password=$PASSVPNUSER name="SGP-L2TP"\
-    disabled=no profile=VPN-SGP-$PROVEDOR comment=SGP-L2TP-$VPN-SGP-$PROVEDOR keepalive-timeout=30
+    disabled=no profile=VPN-SGP-$PROVEDOR comment=SGP-L2TP-$PROVEDOR keepalive-timeout=30
 
 #CONFIGURACAO ADDRESS-LIST E REGRAS DE FIREWALL - BLOQUEIO E REDIRECIONAMENTO PARA PAGINAS DE AVISO/BLOQUEIO
 
