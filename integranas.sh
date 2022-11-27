@@ -34,7 +34,7 @@ echo "Preencha as seguintes informaes:"
 echo ""
 echo "Nome do Provedor:"
 read PROVEDOR
-echo "Usurio VPN:"
+echo "Usuario VPN:"
 read USERVPN
 echo "Senha NAS/VPN:"
 read PASSVPNUSER
