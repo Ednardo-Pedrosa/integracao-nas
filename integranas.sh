@@ -78,7 +78,7 @@ cat <<EOF > Mikrotik-$PROVEDOR.txt
 :global NAS "$NAS"
 :global PORTAPI "$PORTAPI"
 :global SNMP "$SNMP"
-echo :global PROVEDOR "$PROVEDOR"
+:global PROVEDOR "$PROVEDOR"
 
 #GERANDO BACKUP DO CONCENTRADOR MIKROTIK:
 
