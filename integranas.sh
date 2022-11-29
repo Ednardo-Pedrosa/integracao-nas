@@ -6,7 +6,7 @@ clear
 #echo -e '\n'
 echo "SCRIPT PARA INTEGRAO DE CONCENTRADORES"
 echo ""
-echo "Selecione a opo desejada:"
+echo "Selecione a opcao desejada:"
 echo ""
 echo "[ 1 ] | Mikrotik"
 echo "[ 2 ] | Huawei"
@@ -264,6 +264,43 @@ add comment="HABILITA SECRETES CASO O RADIUS-SGP $RADIUS PARE" disabled=yes \
 
 #Script Integração
 #Systema de Gerenciamento de provedores - SGP
+
+#CONFIGURANDO VARIAVEIS NO SGP:
+
+from apps.admcore.models import Config
+
+Config.objects.create(
+    var='ATRASO_HTML',
+    description='PAGINA DE ATRASO',
+    value='<!DOCTYPE html> <html> <head> <title></title> <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> <style type="text/css"> html { height: 100%; } body { font-family: Arial, sans-serif; font-size: 16px; height: 100%; margin: 0; background-repeat: no-repeat; background-attachment: fixed; overflow: hidden; background: -moz-linear-gradient(19% 75% 90deg, #fff, #ddd); background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#fff)); background-repeat: repeat-x; } h1 { font-size: 7em; color: #bebebe; line-height: 16px; } h2 { font-size: 3em; letter-spacing: -0.05em; } .content { text-align: center; } a, a:visited { color: #43640a; } p { padding: 0 20%; } </style> </head> <body> <div class="content"> <h1>!</h1> <h2>Aviso</h2> <p>Não consta em nosso sistema o registro de pagamento das últimas faturas. Caso ainda haja alguma pendência, queira por gentileza regularizar o mais breve possível, após 15 dias de atraso o sistema bloqueará automaticamente o serviço. Caso já tenha regularizado e está mensagem continue aparecendo, Por favor!! entrar em contato com a $PROVEDOR. Favor entrar em contato nos telefones <strong>(xx) xxxxx-xxxx</strong> </p> </div> </body> </html>',
+    active=True
+).save()
+
+Config.objects.create(
+    var='BLOQUEIO_HTML',
+    description='PAGINA DE BLOQUEIO',
+    value='<!DOCTYPE html> <html> <head> <title></title> <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> <style type="text/css"> html { height: 100%; } body { font-family: Arial, sans-serif; font-size: 16px; height: 100%; margin: 0; background-repeat: no-repeat; background-attachment: fixed; overflow: hidden; background: -moz-linear-gradient(19% 75% 90deg, #fff, #ddd); background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#fff)); background-repeat: repeat-x; } h1 { font-size: 7em; color: #bebebe; line-height: 16px; } h2 { font-size: 3em; letter-spacing: -0.05em; } .content { text-align: center; } a, a:visited { color: #43640a; } p { padding: 0 20%; } </style> </head> <body> <p align="center"> <img width="350px" src="$LINK_SGP/media/img/ASSINATURA.png"/></p> <div class="content"> <h1>!</h1> <h2>Acesso indisponível $PROVEDOR !!! !!!</h2></h2><p>Favor entrar em contato nos telefones <strong>(xx) xxxxx-xxxx</strong> </p> </div> </body> </html>',
+    active=True
+).save()
+
+Config.objects.create(
+    var='BLOQUEIO_V6_PREFIX',
+    description='Suspensão de clientes IPv6',
+    value='bloqueiov6prefix',
+    active=True
+).save()
+
+Config.objects.create(
+    var='BLOQUEIO_V6_PD',
+    description='Suspensão de clientes IPv6',
+    value='bloqueiov6pd',
+    active=True
+).save()
+
+from apps.netcore.utils.radius import manage
+print("Executando Reload Radius")
+manage.Manage().ResetRadius()
+print("Reload Radius finalizado")
 
 EOF
 
