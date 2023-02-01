@@ -579,6 +579,54 @@ dns-server 2001:4860:4860::8888
 dns-server 2001:4860:4860::8844
 domain-name $DOMAIN_CISCO
 
+snmp-server community SGP-GRAPHICs RO
+snmp-server host $IP_RADIUS version 2c SGP-GRAPHICs
+
+########################################################### CONFIGURACOES NO SGP #######################################################################
+
+from apps.admcore.models import Config
+
+Config.objects.create(
+    var='BLOQUEIO_V6_PREFIX',
+    description='Suspensão de clientes IPv6',
+    value='bloqueiov6prefix',
+    active=True
+).save()
+
+Config.objects.create(
+    var='BLOQUEIO_V6_PD',
+    description='Suspensão de clientes IPv6',
+    value='bloqueiov6pd',
+    active=True
+).save()
+
+Config.objects.create(
+    var='CISCO_DYNAMIC_POLICY',
+    description='Controle de Banda via Radius',
+    value='1',
+    active=True
+).save()
+
+from apps.netcore import models
+models.IPPool.objects \
+    .create(name="bloqueados",
+            iprange="10.24.0.0/22")
+
+from apps.admcore import models
+from apps.netcore.utils.radius import manage
+m = manage.Manage()
+models.PlanoInternet.objects.all().update(policy_out='OUT-PADRAO')
+models.PlanoInternet.objects.all().update(policy_in='IN-PADRAO')
+for p in models.PlanoInternet.objects.all():
+    m.delRadiusPlano(p)
+    m.addRadiusPlano(p)
+    print(p)
+
+from apps.netcore.utils.radius import manage
+print("Executando Reload Radius")
+manage.Manage().ResetRadius()
+print("Reload Radius finalizado")
+
 EOF
 
 subl cisco-$NOME_PROV.txt
