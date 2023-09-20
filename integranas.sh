@@ -404,6 +404,28 @@ accounting-start-delay 10 online user-type ppp ipoe static
 commit
 quit
 
+aaa
+domain bloqueados
+authentication-scheme auth_$PROVEDOR
+accounting-scheme acct_$PROVEDOR
+commit
+radius-server group sgp-$PROVEDOR
+commit
+ip-pool bloqueados
+commit  
+ipv6-pool bloqueiov6prefix
+commit
+ipv6-pool bloqueiov6pd
+commit  
+dns primary-ip 8.8.8.8
+dns second-ip 8.8.4.4
+commit
+dns primary-ipv6 2001:4860:4860::8888
+commit
+dns second-ipv6 2001:4860:4860::8844
+commit
+quit
+
 snmp-agent community read cipher SGP_HUAWEI_GRAPHICs
 snmp-agent sys-info version v2c
 commit
