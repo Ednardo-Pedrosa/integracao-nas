@@ -462,28 +462,54 @@ y
 
 #Variaveis
 
-Nome : HUAWEI_RATE
-Descrição: Controle de banda via radius - Dinâmica
-Valor : 1
+from apps.admcore.models import Config
 
-Nome : BLOQUEIO_V6_PREFIX
-Descrição: Suspensão de clientes IPv6
-Valor : bloqueiov6prefix
+Config.objects.create(
+    var='BLOQUEIO_V6_PREFIX',
+    description='Suspensão de clientes IPv6',
+    value='bloqueiov6prefix',
+    active=True
+).save()
 
-Nome : BLOQUEIO_V6_PD
-Descrição: Suspensão de clientes IPv6
-Valor : bloqueiov6pd
+Config.objects.create(
+    var='BLOQUEIO_V6_PD',
+    description='Suspensão de clientes IPv6',
+    value='bloqueiov6pd',
+    active=True
+).save()
 
-Nome : HUAWEI_POOL_ENABLE
-Descrição: HUAWEI_POOL_ENABLE
-Valor : 1
+Config.objects.create(
+    var='HUAWEI_RATE',
+    description='Controle de banda via radius - Dinâmico',
+    value='1',
+    active=True
+).save()
 
-#Recriar Radius
+Config.objects.create(
+    var='BLOQUEIO_HUAWEI_DOMAIN',
+    description='Variável que redireciona o cliente para o domain bloqueados',
+    value='bloqueados',
+    active=True
+).save()
 
-from apps.netcore.utils.radius import manage 
-print("recriar radius Iniciando") 
-manage.Manage().ResetRadius() 
-print("Radius recriado")
+Config.objects.create(
+    var='HUAWEI_POOL_ENABLE',
+    description='Habilita o envio do pool name',
+    value='1',
+    active=True
+).save()
+
+from apps.netcore import models
+models.IPPool.objects \
+    .create(name="bloqueados",
+            iprange="10.24.0.0/22")
+
+from apps.cauth.models import Token, Application
+
+from apps.netcore.utils.radius import manage
+print("Executando Reload Radius")
+manage.Manage().ResetRadius()
+print("Reload Radius finalizado")
 
 EOF
 
