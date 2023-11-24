@@ -309,7 +309,7 @@ subl Mikrotik-$PROVEDOR.txt
 
 Huawei () {
 clear
-echo "Script - Integracao Huawei-NE20/40/8000"
+echo "Script - Integrao Huawei-NE20/40/8000"
 echo ""
 echo "Preencha as seguintes informaes:"
 echo ""
@@ -519,7 +519,7 @@ subl Huawei-$PROVEDOR.txt
 
 Cisco () {
 clear
-echo "Script - Integracao Cisco"
+echo "Script - Integrao Cisco"
 echo ""
 echo "Preencha as seguintes informaes:"
 echo ""
