@@ -309,7 +309,7 @@ subl Mikrotik-$PROVEDOR.txt
 
 Huawei () {
 clear
-echo "Script - Integrao Huawei-NE20/40/8000"
+echo "Script - Integracao Huawei-NE20/40/8000"
 echo ""
 echo "Preencha as seguintes informaes:"
 echo ""
@@ -370,6 +370,30 @@ commit
 radius-server authorization $IP_RADIUS destination-port 3799 server-group sgp-$PROVEDOR shared-key $SECRETS
 commit
 
+ip pool bloqueados bas local
+gateway 10.24.0.1 255.255.252.0
+section 0 10.24.0.2 10.24.3.254
+commit
+quit
+ipv6 prefix bloqueiov6prefix local
+prefix 2001:DC8:100::/40
+commit
+quit
+ipv6 prefix bloqueiov6pd delegation
+prefix 2001:DB8:900::/40 delegating-prefix-length 56
+commit
+quit
+ipv6 pool bloqueiov6prefix bas local 
+dns-server 2001:4860:4860::8888
+prefix bloqueiov6prefix
+commit
+quit
+ipv6 pool bloqueiov6pd bas delegation 
+dns-server 2001:4860:4860::8888
+prefix bloqueiov6pd
+commit
+quit
+
 aaa
 authentication-scheme auth_$PROVEDOR
 authentication-mode radius local
@@ -428,29 +452,6 @@ quit
 
 snmp-agent community read cipher SGP_HUAWEI_GRAPHICs
 snmp-agent sys-info version v2c
-commit
-
-ip pool bloqueados bas local
-gateway 10.24.0.1 255.255.252.0
-section 0 10.24.0.2 10.24.3.254
-commit
-quit
-ipv6 prefix bloqueiov6prefix local
-prefix 2001:DC8:100::/40
-commit
-quit
-ipv6 prefix bloqueiov6pd delegation
-prefix 2001:DB8:900::/40 delegating-prefix-length 56
-commit
-quit
-ipv6 pool bloqueiov6prefix bas local 
-dns-server 2001:4860:4860::8888
-prefix bloqueiov6prefix
-commit
-quit
-ipv6 pool bloqueiov6pd bas delegation 
-dns-server 2001:4860:4860::8888
-prefix bloqueiov6pd
 commit
 quit
 
@@ -518,117 +519,146 @@ subl Huawei-$PROVEDOR.txt
 
 Cisco () {
 clear
-echo "Script - Integrao Cisco"
+echo "Script - Integracao Cisco"
 echo ""
 echo "Preencha as seguintes informaes:"
 echo ""
 echo "Nome do Provedor:"
-read NOME_PROV
-echo "Secrets Radius:"
+read PROVEDOR
+echo "Secrets Radius: (Mnimo de 16 caracters)"
 read SECRETS
 echo "IP do Radius:"
 read IP_RADIUS
-echo "IP do NAS:"
-read IP_NAS
 echo "Porta do authentication:"
-read AUT_PORT
+read AUTH_PORT
 echo "Porta do accounting:"
-read ACC_PORT
+read ACCT_PORT
+echo "Interface IP NAS: (Ex: $INTERFACE)"
+read INTERFACE
+echo "Nome do Pool IPv4:"
+read POOLV4
+echo "Nome do Pool IPv6-Prefix:"
+read POOLPREFIXOV6
 
-cat <<EOF > cisco-$NOME_PROV.txt
-
-enable
 conf t
 
-radius-server attribute 44 include-in-access-req default-vrf
-no radius-server attribute 77 include-in-acct-req
-no radius-server attribute 77 include-in-access-req
-radius-server attribute 6 on-for-login-auth
-radius-server attribute 6 support-multiple
-radius-server attribute 8 include-in-access-req
-radius-server attribute 32 include-in-access-req 
-radius-server attribute 32 include-in-accounting-req 
-radius-server attribute 55 include-in-acct-req
-radius-server attribute 55 access-request include
-radius-server attribute 25 access-request include
-radius-server attribute nas-port format d
-radius-server attribute 31 mac format ietf upper-case
-radius-server attribute 31 mac format one-byte delimiter colon upper-case
-radius-server attribute 31 send nas-port-detail mac-only
-radius-server attribute nas-port-id include circuit-id 
-radius-server dead-criteria time 15 tries 3
-radius-server retransmit 6
-radius-server timeout 30
-radius-server deadtime 10
-radius-server authorization default Framed-Protocol ppp
-radius-server vsa send cisco-nas-port
-
-radius server sgp-$NOME_PROV
-address ipv4 $IP_RADIUS auth-port $AUT_PORT acct-port $ACC_PORT
-timeout 5
-retransmit 3
-key 7 $SECRETS
-
-aaa new-model
-aaa group server radius sgp-$NOME_PROV
-server name sgp-$NOME_PROV
+aaa group server radius SGP-$PROVEDOR
+server-private $IP_RADIUS auth-port $AUTH_PORT acct-port $ACCT_PORT key $SECRETS
+ip radius source-interface $INTERFACE
 !
 aaa authentication login default local
-aaa authentication login ssh local
-aaa authentication ppp default group sgp-$NOME_PROV
+aaa authentication login SGP-$PROVEDOR group SGP-$PROVEDOR
+aaa authentication enable default enable
+aaa authentication ppp default group radius local
+aaa authentication ppp SGP-$PROVEDOR group SGP-$PROVEDOR
+aaa authorization console
+aaa authorization config-commands
 aaa authorization exec default local 
-aaa authorization network default group sgp-$NOME_PROV 
-aaa authorization configuration PPPoE group sgp-$NOME_PROV
+aaa authorization exec SGP-$PROVEDOR group SGP-$PROVEDOR 
+aaa authorization network default group radius 
+aaa authorization network SGP-$PROVEDOR group SGP-$PROVEDOR 
+aaa authorization configuration default group management 
+aaa authorization configuration SGP-$PROVEDOR group SGP-$PROVEDOR 
+aaa authorization subscriber-service default local group radius 
+aaa authorization subscriber-service SGP-$PROVEDOR local group SGP-$PROVEDOR 
 aaa accounting delay-start all
-aaa accounting delay-start extended-delay 1
 aaa accounting session-duration ntp-adjusted
-aaa accounting update periodic 5
-aaa accounting exec default none
-aaa accounting network default start-stop group sgp-$NOME_PROV
-
+aaa accounting update periodic 20
+aaa accounting include auth-profile framed-ip-address
+aaa accounting include auth-profile framed-ipv6-prefix
+aaa accounting include auth-profile delegated-ipv6-prefix
+aaa accounting exec default start-stop group radius
+aaa accounting exec SGP-$PROVEDOR start-stop group SGP-$PROVEDOR
+aaa accounting network default start-stop group radius
+aaa accounting network pppoe start-stop group management
+aaa accounting network SGP-$PROVEDOR start-stop group SGP-$PROVEDOR
+aaa accounting system default start-stop group radius
+!
+!
 aaa server radius dynamic-author
-client $IP_RADIUS server-key 7 $SECRETS
-server-key 7 $SECRETS
+client $IP_RADIUS server-key $SECRETS
+server-key $SECRETS
 port 3799
 auth-type any
 ignore session-key
-ignore server-key
 !
-aaa session-id common
-aaa max-sessions 8000
-aaa policy interface-config allow-subinterface
-ppp packet throttle 100 10 450
-
-policy-map OUT-PADRAO
+!
+policy-map SGP-DOWNLOAD
 class class-default
-police cir 2000000000
-conform-action transmit
-exceed-action drop
-
-policy-map IN-PADRAO
+police cir 1000000
+exceed-action drop 
+!
+policy-map SGP-UPLOAD
 class class-default
-police cir 2000000000
-conform-action transmit
-exceed-action drop
-
-subscriber service multiple-accept
-subscriber service session-accounting
-subscriber access pppoe pre-authorize nas-port-id default
-subscriber templating
-
+police cir 1024000
+exceed-action drop 
+!
+interface Virtual-Template10
+ mtu 1492
+ ip unnumbered $INTERFACE
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ ip nat inside
+ ip tcp adjust-mss 1452
+ no logging event link-status
+ peer ip address forced
+ peer default ip address pool $POOLV4
+ peer default ipv6 pool $POOLPREFIXOV6
+ ipv6 unnumbered $INTERFACE
+ ipv6 mtu 1492
+ ipv6 nd ns-interval 1000
+ ipv6 nd prefix default no-advertise
+ ipv6 nd managed-config-flag
+ ipv6 nd other-config-flag
+ ipv6 nd router-preference High
+ no ipv6 nd ra suppress
+ ipv6 nd ra lifetime 21600
+ ipv6 nd ra interval 4 3
+ ipv6 dhcp server poolv6-pd allow-hint
+ no snmp trap link-status
+ keepalive 60 2
+ ppp max-bad-auth 8
+ ppp mtu adaptive
+ ppp disconnect-cause keepalive lost-carrier
+ ppp authentication pap chap ms-chap ms-chap-v2 SGP-$PROVEDOR
+ ppp authorization SGP-$PROVEDOR
+ ppp accounting SGP-$PROVEDOR
+ ppp ipcp dns 8.8.8.8 1.1.1.1
+ ppp ipcp ignore-map
+ ppp ipcp address required
+ ppp ipcp address unique
+ ppp link reorders
+ ppp timeout authentication 100
+ service-policy input SGP-UPLOAD
+ service-policy output SGP-DOWNLOAD
+ ip virtual-reassembly
+!
+bba-group pppoe SGP-$PROVEDOR
+virtual-template 10
+vendor-tag circuit-id service
+vendor-tag remote-id service
+sessions per-mac limit 1
+sessions per-vlan limit 16000
+pado delay 0
+!
+radius server SGP-$PROVEDOR
+address ipv4 $IP_RADIUS auth-port $AUTH_PORT acct-port $ACCT_PORT
+key $SECRETS
+!
 ip local pool bloqueados 10.24.0.1 10.24.3.254
-
+!
 ipv6 local pool bloqueiov6pd 2001:DB1:100::/43 56
 ipv6 local pool bloqueiov6prefix 2001:DB8:200::/48 64
-
+!
 ipv6 dhcp pool bloqueiov6pd
 prefix-delegation pool bloqueiov6pd lifetime 1800 600
 dns-server 2001:4860:4860::8888
 dns-server 2001:4860:4860::8844
-domain-name $DOMAIN_CISCO
-
+!
 snmp-server community SGP-GRAPHICs RO
 snmp-server host $IP_RADIUS version 2c SGP-GRAPHICs
+!
 
 ########################################################### CONFIGURACOES NO SGP #######################################################################
 
@@ -663,8 +693,8 @@ models.IPPool.objects \
 from apps.admcore import models
 from apps.netcore.utils.radius import manage
 m = manage.Manage()
-models.PlanoInternet.objects.all().update(policy_out='OUT-PADRAO')
-models.PlanoInternet.objects.all().update(policy_in='IN-PADRAO')
+models.PlanoInternet.objects.all().update(policy_out='SGP-DOWNLOAD')
+models.PlanoInternet.objects.all().update(policy_in='SGP-UPLOAD')
 for p in models.PlanoInternet.objects.all():
     m.delRadiusPlano(p)
     m.addRadiusPlano(p)
@@ -674,6 +704,15 @@ from apps.netcore.utils.radius import manage
 print("Executando Reload Radius")
 manage.Manage().ResetRadius()
 print("Reload Radius finalizado")
+
+
+########################################################### CONFIGURACOES INTERFACE #######################################################################
+
+conf t
+
+interface x/x/x
+description PPPoE
+pppoe enable group SGP-$PROVEDOR
 
 EOF
 
